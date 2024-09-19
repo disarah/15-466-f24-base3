@@ -125,7 +125,12 @@ PlayMode::PlayMode() : scene(*hexapod_scene) {
 
 	duck_rotation = duck->rotation;
 
-	arrow_order = {0,6,12,18,1,7,2,8,3,9,13,19,14,10,5,20};
+	// down 0-6
+	// up 6-12
+	// left 12 - 18
+	// right 18-24
+
+	arrow_order = {18,6,12,0,19,7,20,8,21,9,13,1,10,14,2,15,11,16};
 
 	arrows[0].arrow = down1;
 	arrows[1].arrow = down2;
@@ -306,6 +311,13 @@ void PlayMode::update(float elapsed) {
 			on_podium = false;
 			started = false;
 			timer = start_rate;
+
+			for (uint32_t i = 0; i < 24; i++){
+				if(arrows[i].on_screen){
+					arrows[i].on_screen = false;
+					arrows[i].arrow->position.x = off_screen_x;
+				}
+			}
 		}
 
 		if(on_podium){
@@ -317,11 +329,6 @@ void PlayMode::update(float elapsed) {
 				started = true;
 			}
 		}
-
-		// 0 right
-		// 1 up
-		// 2 left
-		// 3 down
 
 		if(started){
 			float ArrowSpeed = 2.0f;
