@@ -41,7 +41,7 @@ Load< Sound::Sample > swan_sample(LoadTagDefault, []() -> Sound::Sample const * 
 });
 
 Load< Sound::Sample > wind_sample(LoadTagDefault, []() -> Sound::Sample const * {
-	return new Sound::Sample(data_path("swan.opus"));
+	return new Sound::Sample(data_path("wind.opus"));
 });
 
 Load< Sound::Sample > win_sample(LoadTagDefault, []() -> Sound::Sample const * {
@@ -118,21 +118,23 @@ PlayMode::PlayMode() : scene(*hexapod_scene) {
 	else if (right5 == nullptr) throw std::runtime_error("right5 not found.");
 	else if (right6 == nullptr) throw std::runtime_error("right6 not found.");
 
-	arrow_bbox = glm::vec2(0.1f,0.1f);
+	arrow_bbox = glm::vec2(0.5f,0.5f);
 
-	up_bbox_min = upT->position - arrow_bbox;
-	up_bbox_max = upT->position + arrow_bbox;
+	up_bbox_min = glm::vec2(upT->position.x,upT->position.y) - arrow_bbox;
+	up_bbox_max = glm::vec2(upT->position.x,upT->position.y) + arrow_bbox;
 
-	down_bbox_min = downT->position - arrow_bbox;
-	down_bbox_max = downT->position + arrow_bbox;
+	down_bbox_min = glm::vec2(downT->position.x,upT->position.y) - arrow_bbox;
+	down_bbox_max = glm::vec2(downT->position.x,upT->position.y) + arrow_bbox;
 
-	left_bbox_min = leftT->position - arrow_bbox;
-	left_bbox_max = leftT->position + arrow_bbox;
+	left_bbox_min = glm::vec2(leftT->position.x,upT->position.y) - arrow_bbox;
+	left_bbox_max = glm::vec2(leftT->position.x,upT->position.y) + arrow_bbox;
 
-	right_bbox_min = rightT->position - arrow_bbox;
-	right_bbox_max = rightT->position + arrow_bbox;
+	right_bbox_min = glm::vec2(rightT->position.x,upT->position.y) - arrow_bbox;
+	right_bbox_max = glm::vec2(rightT->position.x,upT->position.y) + arrow_bbox;
 
 	duck_rotation = duck->rotation;
+
+	arrow_order = {0,1,2,3,4,5};
 
 	arrows[0].arrow = down1;
 	arrows[1].arrow = down2;
@@ -159,17 +161,13 @@ PlayMode::PlayMode() : scene(*hexapod_scene) {
 	arrows[22].arrow = right5;
 	arrows[23].arrow = right6;
 
-	for(uint32_t i = 0; i < 24; i++){
-		order[i] = std::rand()
-	}
-
 	//get pointer to camera for convenience:
 	if (scene.cameras.size() != 1) throw std::runtime_error("Expecting scene to have exactly one camera, but it has " + std::to_string(scene.cameras.size()));
 	camera = &scene.cameras.front();
 
 	//start music loop playing:
 	// (note: position will be over-ridden in update())
-	wind_loop = Sound::loop_3D(*swan_sample, 1.0f, get_duck_position(), 10.0f);
+	wind_loop = Sound::loop_3D(*wind_sample, 1.0f, get_duck_position(), 10.0f);
 }
 
 PlayMode::~PlayMode() {
@@ -247,10 +245,6 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 
 void PlayMode::update(float elapsed) {
 
-	//slowly rotates through [0,1):
-	wobble += elapsed / 10.0f;
-	wobble -= std::floor(wobble);
-
 	wind_loop->set_position(get_duck_position(), 1.0f / 60.0f);
 
 	{
@@ -315,79 +309,108 @@ void PlayMode::update(float elapsed) {
 	}
 
 	{ // update arrow locations + detect podium
-		if(!on_podium && abs(duck->position.x - 4.f) < 1.f && abs(duck->position.y) < 1.5f){
+		if(abs(duck->position.x - 4.f) <= 1.f && abs(duck->position.y) < 1.5f){
 			on_podium = true;
 		} else {
 			on_podium = false;
+			started = false;
 			timer = start_rate;
 		}
-		
+
 		if(on_podium){
 			timer = std::max(timer - elapsed, 0.f);
-			if(timer <= 0.f) {
+			if(!started && timer <= 0.f) {
 				// start song
-				swan_song = Sound::play(*swan_sample, 1.0f, 10.0f);
+				wind_loop->set_volume(0.3f);
+				swan_song = Sound::play(*swan_sample, 1.0f);
+				started = true;
 			}
 		}
 
-		float ArrowSpeed = 40.0f;
+		// 0 right
+		// 1 up
+		// 2 left
+		// 3 down
+
+		if(started){
+			float ArrowSpeed = 2.0f;
+			arrow_timer = std::max(arrow_timer - elapsed, 0.f);
+			if(arrow_timer <= 0.f){ // show arrow
+				uint32_t i = arrow_order.front();
+				arrow_order.pop_front();
+				arrows[i].on_screen = true;
+				arrow_order.push_back(i);
+				arrow_timer = arrow_rate;
+			}
+
+			// move all onscreen arrows
+			for (uint32_t i = 0; i < 24; i++){
+				if (arrows[i].on_screen){
+					arrows[i].arrow->position.x -= ArrowSpeed * elapsed;
+				}
+				if (arrows[i].arrow->position.x < 6.f){ // off screen
+					arrows[i].on_screen = false;
+					arrows[i].arrow->position.x = off_screen_x;
+				}
+			}
+		}
 	}
 
 	{ // check for arrow collisions
 		// https://developer.mozilla.org/en-US/docs/Games/Techniques/3D_collision_detection
-		if (left.pressed && !right.pressed) {
+		if (left.pressed) {
 			glm::vec2 rmin = left_bbox_min;
 			glm::vec2 rmax = left_bbox_max;
 
 			for(uint32_t i = 12; i < 18; i++){
-				glm::vec2 mmin = arrows[i].arrow->position - arrow_bbox;
-				glm::vec2 mmax = arrows[i].arrow->position + arrow_bbox;
+				glm::vec2 mmin = glm::vec2(arrows[i].arrow->position.x,arrows[i].arrow->position.y) - arrow_bbox;
+				glm::vec2 mmax = glm::vec2(arrows[i].arrow->position.x,arrows[i].arrow->position.y) + arrow_bbox;
 				if (mmin.x <= rmax.x && mmax.x >= rmin.x && mmin.y <= rmax.y && mmax.y >= rmin.y && arrows[i].on_screen){
 					arrows[i].on_screen = false;
-					arrows[i].arrow->position.x = 5.5f;
-					arrows[i].arrow->position.y = leftT->position.y;
+					arrows[i].arrow->position.x = off_screen_x;
+					score +=1;
 				}
 			}
 		}
-		if (!left.pressed && right.pressed) {
+		if (right.pressed) {
 			glm::vec2 rmin = right_bbox_min;
 			glm::vec2 rmax = right_bbox_max;
 
 			for(uint32_t i = 18; i < 24; i++){
-				glm::vec2 mmin = arrows[i].arrow->position - arrow_bbox;
-				glm::vec2 mmax = arrows[i].arrow->position + arrow_bbox;
+				glm::vec2 mmin = glm::vec2(arrows[i].arrow->position.x,arrows[i].arrow->position.y) - arrow_bbox;
+				glm::vec2 mmax = glm::vec2(arrows[i].arrow->position.x,arrows[i].arrow->position.y) + arrow_bbox;
 				if (mmin.x <= rmax.x && mmax.x >= rmin.x && mmin.y <= rmax.y && mmax.y >= rmin.y && arrows[i].on_screen){
 					arrows[i].on_screen = false;
-					arrows[i].arrow->position.x = 5.5f;
-					arrows[i].arrow->position.y = rightT->position.y;
+					arrows[i].arrow->position.x = off_screen_x;
+					score +=1;
 				}
 			}
 		}
-		if (down.pressed && !up.pressed) {
+		if (down.pressed) {
 			glm::vec2 rmin = down_bbox_min;
 			glm::vec2 rmax = down_bbox_max;
 
 			for(uint32_t i = 0; i < 6; i++){
-				glm::vec2 mmin = arrows[i].arrow->position - arrow_bbox;
-				glm::vec2 mmax = arrows[i].arrow->position + arrow_bbox;
+				glm::vec2 mmin = glm::vec2(arrows[i].arrow->position.x,arrows[i].arrow->position.y) - arrow_bbox;
+				glm::vec2 mmax = glm::vec2(arrows[i].arrow->position.x,arrows[i].arrow->position.y) + arrow_bbox;
 				if (mmin.x <= rmax.x && mmax.x >= rmin.x && mmin.y <= rmax.y && mmax.y >= rmin.y && arrows[i].on_screen){
 					arrows[i].on_screen = false;
-					arrows[i].arrow->position.x = 5.5f;
-					arrows[i].arrow->position.y = downT->position.y;
+					arrows[i].arrow->position.x = off_screen_x;
+					score +=1;
 				}
 			}
 		}
-		if (!down.pressed && up.pressed) {
+		if (up.pressed) {
 			glm::vec2 rmin = up_bbox_min;
 			glm::vec2 rmax = up_bbox_max;
 
 			for(uint32_t i = 0; i < 6; i++){
-				glm::vec2 mmin = arrows[i].arrow->position - arrow_bbox;
-				glm::vec2 mmax = arrows[i].arrow->position + arrow_bbox;
+				glm::vec2 mmin = glm::vec2(arrows[i].arrow->position.x,arrows[i].arrow->position.y) - arrow_bbox;
+				glm::vec2 mmax = glm::vec2(arrows[i].arrow->position.x,arrows[i].arrow->position.y) + arrow_bbox;
 				if (mmin.x <= rmax.x && mmax.x >= rmin.x && mmin.y <= rmax.y && mmax.y >= rmin.y && arrows[i].on_screen){
 					arrows[i].on_screen = false;
-					arrows[i].arrow->position.x = 5.5f;
-					arrows[i].arrow->position.y = upT->position.y;
+					arrows[i].arrow->position.x = off_screen_x;
+					score +=1;
 				}
 			}
 		}
@@ -437,12 +460,12 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 		));
 
 		constexpr float H = 0.09f;
-		lines.draw_text("WASD moves",
+		lines.draw_text("WASD score: " + std::to_string(score),
 			glm::vec3(-aspect + 0.1f * H, -1.0 + 0.1f * H, 0.0),
 			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
 			glm::u8vec4(0x00, 0x00, 0x00, 0x00));
 		float ofs = 2.0f / drawable_size.y;
-		lines.draw_text("WASD moves",
+		lines.draw_text("WASD score: " + std::to_string(score),
 			glm::vec3(-aspect + 0.1f * H + ofs, -1.0 + + 0.1f * H + ofs, 0.0),
 			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
 			glm::u8vec4(0xff, 0xff, 0xff, 0x00));

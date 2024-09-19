@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <deque>
+#include <queue>
 
 struct PlayMode : Mode {
 	PlayMode();
@@ -73,8 +74,14 @@ struct PlayMode : Mode {
 	glm::vec2 right_bbox_max;
 
 	glm::quat duck_rotation;
-	float wobble = 0.0f;
+	
+	const float start_rate = 3.f;
+	const float arrow_rate = 1.f;
+	const float off_screen_x = 20.5f;
 
+	float timer = start_rate;
+	float arrow_timer = arrow_rate;
+	bool started = false;
 	bool on_podium = false;
 
 	struct Arrow {
@@ -84,11 +91,9 @@ struct PlayMode : Mode {
 
 	Arrow arrows[24];
 
-	const float start_rate = 3.f;
+	std::deque<uint32_t> arrow_order;
 
-	float timer = start_rate;
-
-	int order;
+	int score = 0;
 
 	glm::vec3 get_duck_position();
 
