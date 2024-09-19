@@ -21,5 +21,6 @@ Screen Shot:
 How To Play:
 
 WASD to move around. Arrow Keys for rhythm game motion.
+To activate the music, stay on the podium for 3 seconds. thx.
 
 This game was built with [NEST](NEST.md).
