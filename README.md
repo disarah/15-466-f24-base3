@@ -10,6 +10,8 @@ I created the music using the Bosca Ceoil DAW with inspriation from the Swan Lak
 the public domain since it was made in the 1870s. I applied melodic inversion to make the song have the same characteristics
 as the original theme but to give it a more spooky feeling.
 
+I created the background music in garageband in the same key as the swan lake theme.
+
 Screen Shot:
 
 ![Screen Shot](screenshot.png)

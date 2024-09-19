@@ -63,15 +63,12 @@ struct PlayMode : Mode {
 	Scene::Transform *right5 = nullptr;
 	Scene::Transform *right6 = nullptr;
 
-	glm::vec2 arrow_bbox;
-	glm::vec2 up_bbox_min;
-	glm::vec2 down_bbox_min;
-	glm::vec2 left_bbox_min;
-	glm::vec2 right_bbox_min;
-	glm::vec2 up_bbox_max;
-	glm::vec2 down_bbox_max;
-	glm::vec2 left_bbox_max;
-	glm::vec2 right_bbox_max;
+	glm::vec2 up_bbox_minmax;
+	glm::vec2 down_bbox_minmax;
+	glm::vec2 left_bbox_minmax;
+	glm::vec2 right_bbox_minmax;
+
+	float arrow_threshold = 0.6f;
 
 	glm::quat duck_rotation;
 	

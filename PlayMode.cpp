@@ -118,23 +118,14 @@ PlayMode::PlayMode() : scene(*hexapod_scene) {
 	else if (right5 == nullptr) throw std::runtime_error("right5 not found.");
 	else if (right6 == nullptr) throw std::runtime_error("right6 not found.");
 
-	arrow_bbox = glm::vec2(0.5f,0.5f);
-
-	up_bbox_min = glm::vec2(upT->position.x,upT->position.y) - arrow_bbox;
-	up_bbox_max = glm::vec2(upT->position.x,upT->position.y) + arrow_bbox;
-
-	down_bbox_min = glm::vec2(downT->position.x,upT->position.y) - arrow_bbox;
-	down_bbox_max = glm::vec2(downT->position.x,upT->position.y) + arrow_bbox;
-
-	left_bbox_min = glm::vec2(leftT->position.x,upT->position.y) - arrow_bbox;
-	left_bbox_max = glm::vec2(leftT->position.x,upT->position.y) + arrow_bbox;
-
-	right_bbox_min = glm::vec2(rightT->position.x,upT->position.y) - arrow_bbox;
-	right_bbox_max = glm::vec2(rightT->position.x,upT->position.y) + arrow_bbox;
+	up_bbox_minmax = upT->position.x + glm::vec2(-arrow_threshold,arrow_threshold);
+	down_bbox_minmax = downT->position.x + glm::vec2(-arrow_threshold,arrow_threshold);
+	left_bbox_minmax = leftT->position.x + glm::vec2(-arrow_threshold,arrow_threshold);
+	right_bbox_minmax = rightT->position.x + glm::vec2(-arrow_threshold,arrow_threshold);
 
 	duck_rotation = duck->rotation;
 
-	arrow_order = {0,1,2,3,4,5};
+	arrow_order = {0,6,12,18,1,7,2,8,3,9,13,19,14,10,5,20};
 
 	arrows[0].arrow = down1;
 	arrows[1].arrow = down2;
@@ -180,12 +171,12 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			SDL_SetRelativeMouseMode(SDL_FALSE);
 			return true;
 		} else if (evt.key.keysym.sym == SDLK_RIGHT) {
-			left.downs += 1;
-			left.pressed = true;
-			return true;
-		} else if (evt.key.keysym.sym == SDLK_LEFT) {
 			right.downs += 1;
 			right.pressed = true;
+			return true;
+		} else if (evt.key.keysym.sym == SDLK_LEFT) {
+			left.downs += 1;
+			left.pressed = true;
 			return true;
 		} else if (evt.key.keysym.sym == SDLK_UP) {
 			up.downs += 1;
@@ -359,13 +350,9 @@ void PlayMode::update(float elapsed) {
 	{ // check for arrow collisions
 		// https://developer.mozilla.org/en-US/docs/Games/Techniques/3D_collision_detection
 		if (left.pressed) {
-			glm::vec2 rmin = left_bbox_min;
-			glm::vec2 rmax = left_bbox_max;
-
 			for(uint32_t i = 12; i < 18; i++){
-				glm::vec2 mmin = glm::vec2(arrows[i].arrow->position.x,arrows[i].arrow->position.y) - arrow_bbox;
-				glm::vec2 mmax = glm::vec2(arrows[i].arrow->position.x,arrows[i].arrow->position.y) + arrow_bbox;
-				if (mmin.x <= rmax.x && mmax.x >= rmin.x && mmin.y <= rmax.y && mmax.y >= rmin.y && arrows[i].on_screen){
+				glm::vec2 m = arrows[i].arrow->position.x + glm::vec2(-arrow_threshold,arrow_threshold);
+				if (m.x <= left_bbox_minmax.y && m.y >= left_bbox_minmax.x && arrows[i].on_screen){
 					arrows[i].on_screen = false;
 					arrows[i].arrow->position.x = off_screen_x;
 					score +=1;
@@ -373,13 +360,9 @@ void PlayMode::update(float elapsed) {
 			}
 		}
 		if (right.pressed) {
-			glm::vec2 rmin = right_bbox_min;
-			glm::vec2 rmax = right_bbox_max;
-
 			for(uint32_t i = 18; i < 24; i++){
-				glm::vec2 mmin = glm::vec2(arrows[i].arrow->position.x,arrows[i].arrow->position.y) - arrow_bbox;
-				glm::vec2 mmax = glm::vec2(arrows[i].arrow->position.x,arrows[i].arrow->position.y) + arrow_bbox;
-				if (mmin.x <= rmax.x && mmax.x >= rmin.x && mmin.y <= rmax.y && mmax.y >= rmin.y && arrows[i].on_screen){
+				glm::vec2 m = arrows[i].arrow->position.x + glm::vec2(-arrow_threshold,arrow_threshold);
+				if (m.x <= right_bbox_minmax.y && m.y >= right_bbox_minmax.x && arrows[i].on_screen){
 					arrows[i].on_screen = false;
 					arrows[i].arrow->position.x = off_screen_x;
 					score +=1;
@@ -387,13 +370,9 @@ void PlayMode::update(float elapsed) {
 			}
 		}
 		if (down.pressed) {
-			glm::vec2 rmin = down_bbox_min;
-			glm::vec2 rmax = down_bbox_max;
-
 			for(uint32_t i = 0; i < 6; i++){
-				glm::vec2 mmin = glm::vec2(arrows[i].arrow->position.x,arrows[i].arrow->position.y) - arrow_bbox;
-				glm::vec2 mmax = glm::vec2(arrows[i].arrow->position.x,arrows[i].arrow->position.y) + arrow_bbox;
-				if (mmin.x <= rmax.x && mmax.x >= rmin.x && mmin.y <= rmax.y && mmax.y >= rmin.y && arrows[i].on_screen){
+				glm::vec2 m = arrows[i].arrow->position.x + glm::vec2(-arrow_threshold,arrow_threshold);
+				if (m.x <= down_bbox_minmax.y && m.y >= down_bbox_minmax.x && arrows[i].on_screen){
 					arrows[i].on_screen = false;
 					arrows[i].arrow->position.x = off_screen_x;
 					score +=1;
@@ -401,13 +380,9 @@ void PlayMode::update(float elapsed) {
 			}
 		}
 		if (up.pressed) {
-			glm::vec2 rmin = up_bbox_min;
-			glm::vec2 rmax = up_bbox_max;
-
-			for(uint32_t i = 0; i < 6; i++){
-				glm::vec2 mmin = glm::vec2(arrows[i].arrow->position.x,arrows[i].arrow->position.y) - arrow_bbox;
-				glm::vec2 mmax = glm::vec2(arrows[i].arrow->position.x,arrows[i].arrow->position.y) + arrow_bbox;
-				if (mmin.x <= rmax.x && mmax.x >= rmin.x && mmin.y <= rmax.y && mmax.y >= rmin.y && arrows[i].on_screen){
+			for(uint32_t i = 6; i < 12; i++){
+				glm::vec2 m = arrows[i].arrow->position.x + glm::vec2(-arrow_threshold,arrow_threshold);
+				if (m.x <= up_bbox_minmax.y && m.y >= up_bbox_minmax.x && arrows[i].on_screen){
 					arrows[i].on_screen = false;
 					arrows[i].arrow->position.x = off_screen_x;
 					score +=1;
