@@ -23,24 +23,77 @@ struct PlayMode : Mode {
 	struct Button {
 		uint8_t downs = 0;
 		uint8_t pressed = 0;
-	} left, right, down, up;
+	} left, right, down, up, w, a, s, d;
 
 	//local copy of the game scene (so code can change it during gameplay):
 	Scene scene;
 
-	//hexapod leg to wobble:
-	Scene::Transform *hip = nullptr;
-	Scene::Transform *upper_leg = nullptr;
-	Scene::Transform *lower_leg = nullptr;
-	glm::quat hip_base_rotation;
-	glm::quat upper_leg_base_rotation;
-	glm::quat lower_leg_base_rotation;
+	Scene::Transform *duck = nullptr;
+	Scene::Transform *upT = nullptr;
+	Scene::Transform *downT = nullptr;
+	Scene::Transform *leftT = nullptr;
+	Scene::Transform *rightT = nullptr;
+
+	Scene::Transform *up1 = nullptr;
+	Scene::Transform *up2 = nullptr;
+	Scene::Transform *up3 = nullptr;
+	Scene::Transform *up4 = nullptr;
+	Scene::Transform *up5 = nullptr;
+	Scene::Transform *up6 = nullptr;
+
+	Scene::Transform *down1 = nullptr;
+	Scene::Transform *down2 = nullptr;
+	Scene::Transform *down3 = nullptr;
+	Scene::Transform *down4 = nullptr;
+	Scene::Transform *down5 = nullptr;
+	Scene::Transform *down6 = nullptr;
+
+	Scene::Transform *left1 = nullptr;
+	Scene::Transform *left2 = nullptr;
+	Scene::Transform *left3 = nullptr;
+	Scene::Transform *left4 = nullptr;
+	Scene::Transform *left5 = nullptr;
+	Scene::Transform *left6 = nullptr;
+
+	Scene::Transform *right1 = nullptr;
+	Scene::Transform *right2 = nullptr;
+	Scene::Transform *right3 = nullptr;
+	Scene::Transform *right4 = nullptr;
+	Scene::Transform *right5 = nullptr;
+	Scene::Transform *right6 = nullptr;
+
+	glm::vec2 arrow_bbox;
+	glm::vec2 up_bbox_min;
+	glm::vec2 down_bbox_min;
+	glm::vec2 left_bbox_min;
+	glm::vec2 right_bbox_min;
+	glm::vec2 up_bbox_max;
+	glm::vec2 down_bbox_max;
+	glm::vec2 left_bbox_max;
+	glm::vec2 right_bbox_max;
+
+	glm::quat duck_rotation;
 	float wobble = 0.0f;
 
-	glm::vec3 get_leg_tip_position();
+	bool on_podium = false;
 
-	//music coming from the tip of the leg (as a demonstration):
-	std::shared_ptr< Sound::PlayingSample > leg_tip_loop;
+	struct Arrow {
+		Scene::Transform *arrow = nullptr;
+		bool on_screen = false;
+	};
+
+	Arrow arrows[24];
+
+	const float start_rate = 3.f;
+
+	float timer = start_rate;
+
+	int order;
+
+	glm::vec3 get_duck_position();
+
+	std::shared_ptr< Sound::PlayingSample > swan_song;
+	std::shared_ptr< Sound::PlayingSample > wind_loop;
 	
 	//camera:
 	Scene::Camera *camera = nullptr;

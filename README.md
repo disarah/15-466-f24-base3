@@ -1,8 +1,14 @@
-# (TODO: your game's title)
+# Swan Song
 
-Author: (TODO: your name)
+Author: Sarah Di (sarahdi)
 
-Design: (TODO: In two sentences or fewer, describe what is new and interesting about your game.)
+Design: My game is a rhythm game with a plot. You are a duck raised by swans (the ugly cygnet). Eager to
+please the swan heads, you plan to sing at the annual talent show. Can you hit the notes or fall flat!
+
+Music:
+I created the music using the Bosca Ceoil DAW with inspriation from the Swan Lake theme (Tchaikovsky), which is in
+the public domain since it was made in the 1870s. I applied melodic inversion to make the song have the same characteristics
+as the original theme but to give it a more spooky feeling.
 
 Screen Shot:
 
@@ -10,6 +16,6 @@ Screen Shot:
 
 How To Play:
 
-(TODO: describe the controls and (if needed) goals/strategy.)
+WASD to move around. Arrow Keys for rhythm game motion.
 
 This game was built with [NEST](NEST.md).
