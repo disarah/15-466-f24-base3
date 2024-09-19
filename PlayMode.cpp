@@ -309,6 +309,7 @@ void PlayMode::update(float elapsed) {
 			on_podium = true;
 		} else {
 			on_podium = false;
+			if(started) swan_song->stop();
 			started = false;
 			timer = start_rate;
 
