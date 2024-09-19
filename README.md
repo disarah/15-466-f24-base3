@@ -12,6 +12,8 @@ as the original theme but to give it a more spooky feeling.
 
 I created the background music in garageband in the same key as the swan lake theme.
 
+Quacks are also recorded by me.
+
 Screen Shot:
 
 ![Screen Shot](screenshot.png)

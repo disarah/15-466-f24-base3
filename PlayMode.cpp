@@ -44,8 +44,8 @@ Load< Sound::Sample > wind_sample(LoadTagDefault, []() -> Sound::Sample const * 
 	return new Sound::Sample(data_path("wind.opus"));
 });
 
-Load< Sound::Sample > win_sample(LoadTagDefault, []() -> Sound::Sample const * {
-	return new Sound::Sample(data_path("swan.opus"));
+Load< Sound::Sample > quack_sample(LoadTagDefault, []() -> Sound::Sample const * {
+	return new Sound::Sample(data_path("quack.opus"));
 });
 
 Load< Sound::Sample > lose_sample(LoadTagDefault, []() -> Sound::Sample const * {
@@ -362,6 +362,7 @@ void PlayMode::update(float elapsed) {
 				if (m.x <= left_bbox_minmax.y && m.y >= left_bbox_minmax.x && arrows[i].on_screen){
 					arrows[i].on_screen = false;
 					arrows[i].arrow->position.x = off_screen_x;
+					quack = Sound::play(*quack_sample, 0.5f);
 					score +=1;
 				}
 			}
@@ -372,6 +373,7 @@ void PlayMode::update(float elapsed) {
 				if (m.x <= right_bbox_minmax.y && m.y >= right_bbox_minmax.x && arrows[i].on_screen){
 					arrows[i].on_screen = false;
 					arrows[i].arrow->position.x = off_screen_x;
+					quack = Sound::play(*quack_sample, 0.5f);
 					score +=1;
 				}
 			}
@@ -382,6 +384,7 @@ void PlayMode::update(float elapsed) {
 				if (m.x <= down_bbox_minmax.y && m.y >= down_bbox_minmax.x && arrows[i].on_screen){
 					arrows[i].on_screen = false;
 					arrows[i].arrow->position.x = off_screen_x;
+					quack = Sound::play(*quack_sample, 0.5f);
 					score +=1;
 				}
 			}
@@ -392,6 +395,7 @@ void PlayMode::update(float elapsed) {
 				if (m.x <= up_bbox_minmax.y && m.y >= up_bbox_minmax.x && arrows[i].on_screen){
 					arrows[i].on_screen = false;
 					arrows[i].arrow->position.x = off_screen_x;
+					quack = Sound::play(*quack_sample, 0.5f);
 					score +=1;
 				}
 			}

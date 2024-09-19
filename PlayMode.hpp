@@ -95,6 +95,7 @@ struct PlayMode : Mode {
 	glm::vec3 get_duck_position();
 
 	std::shared_ptr< Sound::PlayingSample > swan_song;
+	std::shared_ptr< Sound::PlayingSample > quack;
 	std::shared_ptr< Sound::PlayingSample > wind_loop;
 	
 	//camera:
