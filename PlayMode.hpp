@@ -75,9 +75,13 @@ struct PlayMode : Mode {
 	const float start_rate = 3.f;
 	const float arrow_rate = 1.f;
 	const float off_screen_x = 20.5f;
+	const float song_length = 75.f;
 
 	float timer = start_rate;
 	float arrow_timer = arrow_rate;
+
+	float song_timer = song_length;
+
 	bool started = false;
 	bool on_podium = false;
 

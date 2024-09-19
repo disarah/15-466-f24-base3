@@ -309,25 +309,32 @@ void PlayMode::update(float elapsed) {
 			on_podium = true;
 		} else {
 			on_podium = false;
-			if(started) swan_song->stop();
+			if(started) { 
+				wind_loop->set_volume(1.0f);
+				swan_song->stop();
+			}
 			started = false;
 			timer = start_rate;
-
-			for (uint32_t i = 0; i < 24; i++){
-				if(arrows[i].on_screen){
-					arrows[i].on_screen = false;
-					arrows[i].arrow->position.x = off_screen_x;
-				}
-			}
+			song_timer = song_length;
 		}
 
 		if(on_podium){
 			timer = std::max(timer - elapsed, 0.f);
+			song_timer = std::max(song_timer - elapsed, 0.f);
 			if(!started && timer <= 0.f) {
 				// start song
 				wind_loop->set_volume(0.3f);
 				swan_song = Sound::play(*swan_sample, 1.0f);
 				started = true;
+			}
+		}
+
+		if(song_timer <= 0.f || !on_podium){
+			for (uint32_t i = 0; i < 24; i++){
+				if(arrows[i].on_screen){
+					arrows[i].on_screen = false;
+					arrows[i].arrow->position.x = off_screen_x;
+				}
 			}
 		}
 
